@@ -143,7 +143,7 @@
   <header>
     <div class="brand">Modonix &middot; Internal Tool</div>
     <h1>Issue <span class="seamword">Miner</span></h1>
-    <p class="tagline">Two separate methods. Core mines Quora and industry forums directly through search. Reddit uses a different path: it opens a Google search, since Google is the only search engine Reddit still allows in, and you paste back what you find.</p>
+    <p class="tagline">Two separate methods. Core mines Quora directly through search. Reddit uses a different path: it opens a Google search, since Google is the only search engine Reddit still allows in, and you paste back what you find.</p>
   </header>
 
   <div class="panel">
@@ -163,9 +163,9 @@
     </div>
 
     <div class="block-title" style="margin-top:6px;border-top:2px solid var(--line);padding-top:20px">
-      <h3>Method <span>One</span> &mdash; Core Miner (Quora + Forums)</h3>
+      <h3>Method <span>One</span> &mdash; Core Miner (Quora only)</h3>
     </div>
-    <p class="hint" style="margin-bottom:16px">Same method as before: searches directly, no manual step.</p>
+    <p class="hint" style="margin-bottom:16px">Same method as before: searches directly, no manual step. Quora only, no forums.</p>
     <div class="row">
       <button class="btn-mine" id="mineBtn" onclick="mine()">Mine Core Issues</button>
       <div class="count-select">
@@ -174,13 +174,6 @@
           <option value="10" selected>10</option>
           <option value="15">15</option>
           <option value="20">20</option>
-        </select>
-      </div>
-      <div class="count-select">
-        <label for="sources" style="margin:0;font-size:11px">Sources</label>
-        <select id="sources">
-          <option value="community" selected>Quora and industry forums only</option>
-          <option value="any">Any web source</option>
         </select>
       </div>
     </div>
@@ -213,7 +206,7 @@
 
     <div class="block">
       <div class="block-title">
-        <h3><span>&#9646;</span> Failure Points &mdash; Core</h3>
+        <h3><span>&#9646;</span> Failure Points &mdash; Core (Quora)</h3>
         <button class="btn-copy" id="copyFp" onclick="copyBlock('fp', this)">Copy Failure Points</button>
       </div>
       <div id="fpRender"></div>
@@ -221,7 +214,7 @@
 
     <div class="block">
       <div class="block-title">
-        <h3><span>&#9646;</span> Source URLs &mdash; Core</h3>
+        <h3><span>&#9646;</span> Source URLs &mdash; Core (Quora)</h3>
         <button class="btn-copy" id="copyUrl" onclick="copyBlock('url', this)">Copy URLs</button>
       </div>
       <pre class="out" id="urlRender"></pre>
@@ -274,7 +267,7 @@
     </div>
   </div>
 
-  <footer>Modonix Issue Miner v2.0 &middot; Core method searches live &middot; Reddit method routes through Google since Reddit blocks other search access &middot; verify URLs before publishing</footer>
+  <footer>Modonix Issue Miner v2.1 &middot; Core method searches Quora only &middot; Reddit method routes through Google since Reddit blocks other search access &middot; verify URLs before publishing</footer>
 </div>
 
 <script>
@@ -295,7 +288,7 @@ function setRedditStatus(kind, msg){
   s.innerHTML = (kind === 'working' ? '<span class="pulse"></span>' : '') + msg;
 }
 
-function buildPrompt(topic, url, count, sourceMode){
+function buildPrompt(topic, url, count){
   const modeBlock = url
     ? 'A page URL is provided: ' + url + '\n' +
       'STEP 1: Use web search to find and read this page (search for the URL itself and for its title or slug terms). Identify the exact topic, audience, and angle of that page. If the page cannot be read, infer the topic from the URL slug' + (topic ? ' and the provided topic' : '') + '.\n' +
@@ -303,20 +296,18 @@ function buildPrompt(topic, url, count, sourceMode){
       (topic ? 'The user also provided this topic as extra context: ' + topic + '\n' : '')
     : 'TOPIC: ' + topic + '\n';
 
-  const sourceBlock = sourceMode === 'community'
-    ? 'SOURCE RESTRICTION, CRITICAL: Every source URL MUST come from quora.com or a genuine public industry forum where operators discuss this topic (a discussion board, not a content site). Do not use reddit.com; Reddit is handled by a separate process and is out of scope here.\n' +
-      'FORBIDDEN as sources: company blogs, marketing agency sites, SEO tool blogs, consultant sites, news articles, and any commercial content site. Linking to those boosts competitors and carries no credibility.\n\n'
-    : 'Prefer Quora and industry forums, but any credible source is acceptable except reddit.com.\n\n';
+  const sourceBlock = 'SOURCE RESTRICTION, CRITICAL: Every source URL MUST come from quora.com. No other domain is acceptable for any reason.\n' +
+    'FORBIDDEN as sources: reddit.com (handled by a separate process, out of scope here), company blogs, marketing agency sites, SEO tool blogs, consultant sites, news articles, industry forums, and any commercial content site. Linking to those boosts competitors and carries no credibility.\n\n';
 
   return 'You are a content research analyst for Modonix, a B2B and industrial e-commerce consulting firm.\n\n' +
     modeBlock + '\n' +
-    'TASK: Run multiple web searches to find REAL operator complaints, frustrations, and failure stories about this topic, posted by actual business owners and operators in their own words.\n\n' +
+    'TASK: Run multiple web searches to find REAL operator complaints, frustrations, and failure stories about this topic, posted by actual business owners and operators in their own words on Quora.\n\n' +
     sourceBlock +
     'DELIVER EXACTLY ' + count + ' failure points. Each failure point:\n' +
     '- 1 to 2 sentences describing a specific operational pain and the mechanism of what goes wrong. Not a generic category.\n' +
     '- Include any raw numbers, dollar figures, or percentages found in the source.\n' +
-    '- Followed on the next line by its single source URL. Real, verifiable URLs only, taken from your search results. Never invent a URL.\n\n' +
-    'RULES: No em dashes anywhere. No generic filler. One URL per failure point. It is better to deliver 12 community-sourced failure points than ' + count + ' with blog sources.\n\n' +
+    '- Followed on the next line by its single source URL, which must be a quora.com URL taken from your search results. Real, verifiable URLs only, never invent a URL.\n\n' +
+    'RULES: No em dashes anywhere. No generic filler. One URL per failure point. It is better to deliver fewer than ' + count + ' genuine Quora-sourced failure points than to pad with non-Quora sources.\n\n' +
     'OUTPUT FORMAT, exactly this structure and nothing else:\n' +
     'TOPIC IDENTIFIED: <one line>\n\n' +
     'FAILURE POINTS:\n' +
@@ -425,7 +416,7 @@ function renderInto(fpElId, urlElId, items, storeObj){
 function combineResults(){
   const parts = [];
   const urls = [];
-  if(store.fp){ parts.push('CORE (QUORA + FORUMS):\n' + store.fp); if(store.url) urls.push(store.url); }
+  if(store.fp){ parts.push('CORE (QUORA):\n' + store.fp); if(store.url) urls.push(store.url); }
   if(storeReddit.fp){ parts.push('REDDIT:\n' + storeReddit.fp); if(storeReddit.url) urls.push(storeReddit.url); }
   combinedFp = parts.join('\n\n');
   combinedUrl = urls.join('\n');
@@ -446,7 +437,7 @@ async function callClaude(messages, useSearch){
     headers['anthropic-dangerous-direct-browser-access'] = 'true';
   }
   const body = {
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-5',
     max_tokens: 1000,
     messages: messages
   };
@@ -467,7 +458,6 @@ async function mine(){
   const topic = document.getElementById('topic').value.trim();
   const url = document.getElementById('pageurl').value.trim();
   const count = document.getElementById('count').value;
-  const sourceMode = document.getElementById('sources').value;
 
   if(!topic && !url){
     setStatus('error','Enter a topic, a URL, or both. The miner needs at least one.');
@@ -481,10 +471,10 @@ async function mine(){
   const btn = document.getElementById('mineBtn');
   btn.disabled = true;
   document.getElementById('results').classList.remove('on');
-  setStatus('working', url ? 'Reading the page and mining the web. 30 to 90 seconds.' : 'Mining the web for real operator pain. 30 to 90 seconds.');
+  setStatus('working', url ? 'Reading the page and mining Quora. 30 to 90 seconds.' : 'Mining Quora for real operator pain. 30 to 90 seconds.');
 
   try{
-    let messages = [{ role:'user', content: buildPrompt(topic, url, count, sourceMode) }];
+    let messages = [{ role:'user', content: buildPrompt(topic, url, count) }];
     let fullText = '';
     let rounds = 0;
 
